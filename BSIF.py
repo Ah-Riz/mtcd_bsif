@@ -4,6 +4,9 @@ import numpy as np
 import cv2
 from matplotlib import pyplot as plt
 
+import cupy as cp
+from cupyx.scipy.signal import convolve2d
+
 def zeroAround(img, c):
   padded_img = cv2.copyMakeBorder(img, c, c, c, c, cv2.BORDER_CONSTANT, None, 0)
   return padded_img
@@ -45,8 +48,7 @@ def bsif(img, filter_path, kname_split):
   return features
 
 
-import cupy as cp
-from cupyx.scipy.signal import convolve2d
+
 def bsif_gpu(img, filter_path, kname_split):
   filter_shape = kname_split[1]
   filter_size = int(filter_shape.split("x")[0])

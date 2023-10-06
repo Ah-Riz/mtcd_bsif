@@ -29,6 +29,7 @@ from multiprocessing import Pool
 # from multiprocessing.dummy import Pool as ThreadPool
 
 # from time import sleep
+import shutil
 
 from MTCD import *
 from BSIF import *
@@ -43,29 +44,29 @@ def preprocessing(img_path, mode="mtcd"):
     img = cv2.imread(img_path)
     return img, image_name, class_name
 
-# def setup_bsif(img_path, done, stop):
-def setup_bsif(img_path):
-  # with done:
-    img, image_name, class_name = preprocessing(img_path,"bsif")
-    # print(image_name)
-    path_filter_BSIF = os.path.join("C:","\\Users","Rizki","Documents","thesis","texturefilters")
-    all_filter_name =  np.array(sort(os.listdir(path_filter_BSIF)),dtype=object)
-    result_bsif = {}
-    for i in all_filter_name:
-      filter_shape = i.split("_")[1]
-      filter_bit = i.split("_")[-1].replace('bit.mat', '')
-      bsif_result = bsif(img, os.path.join(path_filter_BSIF,i), i.split("_"))
-      data_bsif = np.concatenate(([image_name, class_name],bsif_result))
-      key = "bsif_"+filter_shape+"_"+filter_bit+"bit.csv"
-      if key in result_bsif.keys():
-        result_bsif[key].append(data_bsif)
-      else:
-        result_bsif[key] = [data_bsif]
-    # print(result_bsif)
-  #   done.notify()
-    return result_bsif
-  # while not stop.is_set():
-  #   sleep(1)
+# # def setup_bsif(img_path, done, stop):
+# def setup_bsif(img_path):
+#   # with done:
+#     img, image_name, class_name = preprocessing(img_path,"bsif")
+#     # print(image_name)
+#     path_filter_BSIF = os.path.join("C:","\\Users","Rizki","Documents","thesis","texturefilters")
+#     all_filter_name =  np.array(sort(os.listdir(path_filter_BSIF)),dtype=object)
+#     result_bsif = {}
+#     for i in all_filter_name:
+#       filter_shape = i.split("_")[1]
+#       filter_bit = i.split("_")[-1].replace('bit.mat', '')
+#       bsif_result = bsif(img, os.path.join(path_filter_BSIF,i), i.split("_"))
+#       data_bsif = np.concatenate(([image_name, class_name],bsif_result))
+#       key = "bsif_"+filter_shape+"_"+filter_bit+"bit.csv"
+#       if key in result_bsif.keys():
+#         result_bsif[key].append(data_bsif)
+#       else:
+#         result_bsif[key] = [data_bsif]
+#     # print(result_bsif)
+#   #   done.notify()
+#     return result_bsif
+#   # while not stop.is_set():
+#   #   sleep(1)
 
 def setup_bsif_gpu(img_path):
   # with done:
@@ -180,15 +181,77 @@ def fusion(mtcd, bsif):
       else:
         fusion_result[f_key] = [res]
   return fusion_result
-        
-      
+
+def augmentation(path_batik):
+  path = os.path.normpath(path_batik + os.sep + os.pardir)
+  all_batik_name =  np.array(sort(os.listdir(path)),dtype=object)
   
-  
+  os.makedirs(path_batik)
+  for i in range(len(all_batik_name)):
+    shutil.copy2(os.path.join(path,all_batik_name[i]), path_batik)  
+    src = cv2.imread(os.path.join(path,all_batik_name[i])) 
+    img = cv2.flip(src, 0)
+    name, extension = all_batik_name[i].split(".")
+    name = name+"_flip."+extension
+    cv2.imwrite(os.path.join(path_batik,name), img) 
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
   path_save = os.path.join("C:","\\Users","Rizki","Documents","thesis","hasil_ekstraksi_fitur")
-  path_batik = os.path.join("C:","\\Users","Rizki","Documents","thesis","Batik_Nitik_960_Images")
+  path_batik = os.path.join("C:","\\Users","Rizki","Documents","thesis","Batik_Nitik_960_Images","augmented_image")
+  
+
+  if not os.path.exists(path_batik):
+    augmentation(path_batik)
+  
+  all_batik_name =  np.array(sort(os.listdir(path_batik)),dtype=object)
+  
+  for i in range(len(all_batik_name)):
+    all_batik_name[i] = os.path.join(path_batik,all_batik_name[i])
+
+  #ekstraksi fitur MTCD multiprocessing
+  # start = datetime.now()
+  with Pool() as pool:
+    result_mtcd = pool.map(setup_mtcd, all_batik_name)
+    pool.close()
+  # end = datetime.now()
+  # mtcd_time = (end-start).total_seconds()* 10**3
+  print("mtcd done")
+  # # ekstraksi fitur BSIF multiprocessing
+  # all_bsif = []
+  # # a=0
+  # # start = datetime.now()
+  # for i in divide_to_batch(all_batik_name,200):
+  #   # a+=1
+  #   with Pool() as pool:
+  #     result_bsif = pool.map(setup_bsif, i)
+  #     all_bsif.append([result_bsif])
+  #     # save2csv(result_bsif, path_save, "bsif")
+  #     pool.close()
+  #   # if a==2:
+  #   #   break
+  # sorted_bsif = sort_bsif(all_bsif)
+  # # end = datetime.now()
+  # bsif_time = (end-start).total_seconds()* 10**3
+  # # print(sorted_bsif)
+
+
+
+  gpu_bsif = []
+  a=0
+  # start = datetime.now()
+  for i in divide_to_batch(all_batik_name,400):
+    a+=1
+    with Pool() as pool:
+      result_bsif = pool.map(setup_bsif_gpu, i)
+      gpu_bsif.append([result_bsif])
+      pool.close()
+      print(a)
+  sorted_bsif_gpu = sort_bsif(gpu_bsif)
+  # end = datetime.now()
+  # bsif_gpu_time = (end-start).total_seconds()* 10**3
+  
+  fusion_result = fusion(result_mtcd, sorted_bsif_gpu)
   
   dt = str(datetime.now()).split(" ")
   date = dt[0].replace('-', '')
@@ -196,58 +259,11 @@ if __name__ == '__main__':
   target = date + "_" + time
   path_save = os.path.join(path_save, target)
   os.makedirs(path_save)
-
-  all_batik_name =  np.array(sort(os.listdir(path_batik)),dtype=object)
-
-  for i in range(len(all_batik_name)):
-    all_batik_name[i] = os.path.join(path_batik,all_batik_name[i])
-
-  #ekstraksi fitur MTCD multiprocessing
-  start = datetime.now()
-  with Pool() as pool:
-    result_mtcd = pool.map(setup_mtcd, all_batik_name)
-    # save2csv(result_mtcd, path_save, "mtcd")
-    pool.close()
-  end = datetime.now()
-  mtcd_time = (end-start).total_seconds()* 10**3
-
-  # ekstraksi fitur BSIF multiprocessing
-  all_bsif = []
-  # a=0
-  start = datetime.now()
-  for i in divide_to_batch(all_batik_name,200):
-    # a+=1
-    with Pool() as pool:
-      result_bsif = pool.map(setup_bsif, i)
-      all_bsif.append([result_bsif])
-      # save2csv(result_bsif, path_save, "bsif")
-      pool.close()
-    # if a==2:
-    #   break
-  sorted_bsif = sort_bsif(all_bsif)
-  end = datetime.now()
-  bsif_time = (end-start).total_seconds()* 10**3
-  # print(sorted_bsif)
-
-  fusion_result = fusion(result_mtcd, sorted_bsif)
-
-
-  gpu_bsif = []
-  # a=0
-  start = datetime.now()
-  for i in divide_to_batch(all_batik_name,200):
-    # a+=1
-    with Pool() as pool:
-      result_bsif = pool.map(setup_bsif_gpu, i)
-      gpu_bsif.append([result_bsif])
-      pool.close()
-  sorted_bsif_gpu = sort_bsif(gpu_bsif)
-  end = datetime.now()
-  bsif_gpu_time = (end-start).total_seconds()* 10**3
   
   save2csv(result_mtcd, path_save, 'mtcd')
-  save2csv(sorted_bsif, path_save, 'bsif')
-  save2csv(sorted_bsif_gpu, path_save, 'bsif_gpu')
+  # save2csv(sorted_bsif, path_save, 'bsif')
+  # save2csv(sorted_bsif_gpu, path_save, 'bsif_gpu')
+  save2csv(sorted_bsif_gpu, path_save, 'bsif')
   save2csv(fusion_result, path_save, 'fusion')
   
   

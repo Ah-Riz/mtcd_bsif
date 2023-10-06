@@ -240,7 +240,7 @@ if __name__ == '__main__':
   gpu_bsif = []
   a=0
   # start = datetime.now()
-  for i in divide_to_batch(all_batik_name,400):
+  for i in divide_to_batch(all_batik_name,300):
     a+=1
     with Pool() as pool:
       result_bsif = pool.map(setup_bsif_gpu, i)

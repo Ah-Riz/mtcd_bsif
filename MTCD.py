@@ -24,8 +24,8 @@ def combineColorQuantization(image, B_bins, G_bins, R_bins):
   R_quant = colorQuantization(R, R_bins)
 
   #penggabungan kuantisasi warna
-  combine_quant = (B_bins * G_bins * R_quant) + (B_bins * G_quant) + B_quant
-
+  # combine_quant = (B_bins * G_bins * R_quant) + (B_bins * G_quant) + B_quant
+  combine_quant = (0.229 * R_quant) + (0.5870 * G_quant) + (0.1140 * B_quant)
   return combine_quant
 
 def edgeQuantization(image, binsTheta):

@@ -6,14 +6,17 @@ from sklearn.model_selection import cross_validate
 from sklearn import svm
 
 # from datetime import datetime
+
 import csv
 
+import matplotlib
+matplotlib.use('Agg')
 from matplotlib.pylab import *
 from multiprocessing import Pool
  
 def svm_classifier(setup_mutiprocessing):
     # kernel = {1:"linear",2:"rbf",3:"poly",4:"sigmoid"}
-
+    # print(setup_mutiprocessing)
     # path_ekstraksi = os.path.join("C:","\\Users","Rizki","Documents","thesis","hasil_ekstraksi_fitur",folder_ekstraksi,file)
     dt = np.genfromtxt(setup_mutiprocessing[0], delimiter=",")
     dt = np.delete(dt,0,1)
@@ -45,7 +48,8 @@ def svm_classifier(setup_mutiprocessing):
 
     # end = datetime.now()
     # tot_time = (end-start).total_seconds()
-    print("%0.3f for avg accuracy with avg f1-score: %0.3f" % np.average(scores["test_acc"], np.average(scores["test_f1_micro"])))
+    # print("%0.3f for avg accuracy with avg f1-score: %0.3f" % np.average(scores["test_acc"]), np.average(scores["test_f1_micro"])))
+    # print(np.average(scores["test_acc"]), np.average(scores["test_f1_micro"]))
     file = str(setup_mutiprocessing[0]).split('\\')[-1]
     return file, setup_mutiprocessing[1], setup_mutiprocessing[2], setup_mutiprocessing[3],np.average(scores["test_acc"]), np.average(scores["test_f1_micro"])
 
@@ -53,7 +57,7 @@ def run(path, direktory_ekstraksi_fitur,file_save):
     path_direktory_ekstraksi_fitur = os.path.join(path,direktory_ekstraksi_fitur)
     c = [1,10,100]
     svm_kernel = ["linear","rbf","poly","sigmoid"]
-    pca = [0.2,0.4,0.6,0.7,0]
+    pca = [0.2, 0.4, 0.6, 0.8, 0]
     name_of_file =  np.array(sort(os.listdir(path_direktory_ekstraksi_fitur)),dtype=object)
     # res = [["file", "c", "tipe kernel", "pca %", "avg acc", "avg f1-score"]]
     setup_mutiprocessing = []
@@ -62,17 +66,17 @@ def run(path, direktory_ekstraksi_fitur,file_save):
             for kernel in svm_kernel:
                 for i in range(len(pca)):
                     setup_mutiprocessing.append([os.path.join(path_direktory_ekstraksi_fitur,file), c[j], kernel, pca[i]])
-    start = datetime.now()
+    # start = datetime.now()
     with Pool() as pool:
         res = pool.map(svm_classifier,setup_mutiprocessing)
         pool.close()
-    end = datetime.now()
-    tot_cpu = (end-start).total_seconds()
+    # end = datetime.now()
+    # tot_cpu = (end-start).total_seconds()
 
                     # avg_acc, avg_f1 = svm_classifier(os.path.join(path_direktory_ekstraksi_fitur,file), c, kernel, pca[i])
                     # print("-",file,c,kernel,pca)
                     # res.append([file,c,kernel,pca,avg_acc, avg_f1])
-    print("cpu:",tot_cpu)
+    # print("cpu:",tot_cpu)
 
     csv_file = os.path.join(path,direktory_ekstraksi_fitur,file_save)
     if not os.path.isfile(csv_file):
@@ -81,13 +85,13 @@ def run(path, direktory_ekstraksi_fitur,file_save):
           writer = csv.writer(file)
     with open(csv_file,'a', newline='') as file:
       writer = csv.writer(file)
-      writer.writerow(["file", "c", "tipe kernel", "pca %", "avg acc", "avg f1-score", "avg acc GPU", "avg f1-score GPU"])
+      writer.writerow(["file", "c", "tipe kernel", "pca %", "avg acc", "avg f1-score"])
       for i in res:
         writer.writerow(i)
     
 
 if __name__ == '__main__':
-    direktory_ekstraksi_fitur = "20231005_135330"
+    direktory_ekstraksi_fitur = "20231006_213519"
     path = os.path.join("C:","\\Users","Rizki","Documents","thesis","hasil_ekstraksi_fitur")
     file_save = "_evaluasi.csv"
     

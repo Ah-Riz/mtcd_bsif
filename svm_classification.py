@@ -36,7 +36,14 @@ def svm_classifier(setup_mutiprocessing):
     scores = cross_validate(clf, features, target, cv=cv, scoring=scoring, return_estimator=True, error_score="raise")
 
     file = str(setup_mutiprocessing[0]).split('\\')[-1]
-    return file, setup_mutiprocessing[1], setup_mutiprocessing[2], setup_mutiprocessing[3], np.average(scores["test_acc"]), np.average(scores["test_f1_macro"]), np.average(scores["fit_time"]), np.average(scores["score_time"])
+    if "mtcd" in file:
+        metode = "mtcd"
+        size = "-"
+        bit = "-"
+    else:
+        metode, size, bit = str(setup_mutiprocessing[0]).split('\\')[-1].replace('bit.csv', '').split("_")
+        
+    return metode, size, bit, setup_mutiprocessing[1], setup_mutiprocessing[2], setup_mutiprocessing[3], np.average(scores["test_acc"]), np.average(scores["test_f1_macro"]), np.average(scores["fit_time"]), np.average(scores["score_time"])
 
 def main(path, direktory_ekstraksi_fitur,file_save):
     path_direktory_ekstraksi_fitur = os.path.join(path,direktory_ekstraksi_fitur)
@@ -63,12 +70,12 @@ def main(path, direktory_ekstraksi_fitur,file_save):
           writer = csv.writer(file)
     with open(csv_file,'a', newline='') as file:
       writer = csv.writer(file)
-      writer.writerow(["file", "c", "tipe kernel", "pca %", "avg acc", "avg f1-score macro", "avg fit time", "avg score time"])
+      writer.writerow(["metode", "size", "bit", "c", "tipe kernel", "pca %", "avg acc", "avg f1-score macro", "avg fit time", "avg score time"])
       for i in res:
         writer.writerow(i)
 
 if __name__ == '__main__':
-    direktory_ekstraksi_fitur = "20231203_165222"
+    direktory_ekstraksi_fitur = "20231206_175258"
     path = os.path.join("C:","\\Users","Rizki","Documents","thesis","hasil_ekstraksi_fitur")
     file_save = "_evaluasi.csv"
     

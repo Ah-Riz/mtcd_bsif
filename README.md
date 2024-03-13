@@ -1,1 +1,1 @@
-This repository is for my thesis research. I'll update this soon. 
+This repository is for my Master's degree research. I'll update it soon.

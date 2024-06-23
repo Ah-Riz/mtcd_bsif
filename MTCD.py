@@ -105,6 +105,58 @@ def edgeQuantization(image, binsTheta):
 
   return np.array(theta)
 
+def colorTexton(h, w, colorQuant, color_img):
+  for i in range(0, h, 2):
+    for j in range(0, w, 2):
+      # texton search for color
+      cTemp = colorQuant[i:i + 2, j:j + 2]
+      if (cTemp[0, 0] == cTemp[0, 1]):  # texton type 1
+        color_img[i, j] = colorQuant[i, j]
+        color_img[i, j + 1] = colorQuant[i, j + 1]
+      if (cTemp[0, 0] == cTemp[1, 0]):  # texton type 2
+        color_img[i, j] = colorQuant[i, j]
+        color_img[i + 1, j] = colorQuant[i + 1, j]
+      if (cTemp[0, 0] == cTemp[1, 1]):  # texton type 3
+        color_img[i, j] = colorQuant[i, j]
+        color_img[i + 1, j + 1] = colorQuant[i + 1, j + 1]
+      if (cTemp[1, 0] == cTemp[1, 1]):  # texton type 4
+        color_img[i + 1, j] = colorQuant[i + 1, j]
+        color_img[i + 1, j + 1] = colorQuant[i + 1, j + 1]
+      if (cTemp[0, 1] == cTemp[1, 1]):  # texton type 5
+        color_img[i, j + 1] = colorQuant[i, j + 1]
+        color_img[i + 1, j + 1] = colorQuant[i + 1, j + 1]
+      if (cTemp[0, 1] == cTemp[1, 0]):  # texton type 6
+        color_img[i, j + 1] = colorQuant[i, j + 1]
+        color_img[i + 1, j] = colorQuant[i + 1, j]
+        
+  return color_img
+
+def edgeTexton(h, w, edgeQuant, edge_img):
+  for i in range(0, h, 2):
+    for j in range(0, w, 2):
+      # texton search for edge
+      eTemp = edgeQuant[i:i + 2, j:j + 2]
+      if (eTemp[0, 0] == eTemp[0, 1]):  # texton type 1
+        edge_img[i, j] = edgeQuant[i, j]
+        edge_img[i, j + 1] = edgeQuant[i, j + 1]
+      if (eTemp[0, 0] == eTemp[1, 0]):  # texton type 2
+        edge_img[i, j] = edgeQuant[i, j]
+        edge_img[i + 1, j] = edgeQuant[i + 1, j]
+      if (eTemp[0, 0] == eTemp[1, 1]):  # texton type 3
+        edge_img[i, j] = edgeQuant[i, j]
+        edge_img[i + 1, j + 1] = edgeQuant[i + 1, j + 1]
+      if (eTemp[1, 0] == eTemp[1, 1]):  # texton type 4
+        edge_img[i + 1, j] = edgeQuant[i + 1, j]
+        edge_img[i + 1, j + 1] = edgeQuant[i + 1, j + 1]
+      if (eTemp[0, 1] == eTemp[1, 1]):  # texton type 5
+        edge_img[i, j + 1] = edgeQuant[i, j + 1]
+        edge_img[i + 1, j + 1] = edgeQuant[i + 1, j + 1]
+      if (eTemp[0, 1] == eTemp[1, 0]):  # texton type 6
+        edge_img[i, j + 1] = edgeQuant[i, j + 1]
+        edge_img[i + 1, j] = edgeQuant[i + 1, j]
+  
+  return edge_img
+
 def textonSearch(colorQuant, cBins, edgeQuant, eBins):
   """
   Perform texture analysis using color and edge quantization, texton search, and histogram creation.
@@ -132,52 +184,10 @@ def textonSearch(colorQuant, cBins, edgeQuant, eBins):
   (h, w) = colorQuant.shape
   color_img = np.zeros((h, w))
   edge_img = np.zeros((h, w))
-
-  # Sliding window check for all color channels
-  for i in range(0, h, 2):
-    for j in range(0, w, 2):
-
-      # texton search for color
-      cTemp = colorQuant[i:i + 2, j:j + 2]
-      if (cTemp[0, 0] == cTemp[0, 1]):  # texton type 1
-        color_img[i, j] = colorQuant[i, j]
-        color_img[i, j + 1] = colorQuant[i, j + 1]
-      if (cTemp[0, 0] == cTemp[1, 0]):  # texton type 2
-        color_img[i, j] = colorQuant[i, j]
-        color_img[i + 1, j] = colorQuant[i + 1, j]
-      if (cTemp[0, 0] == cTemp[1, 1]):  # texton type 3
-        color_img[i, j] = colorQuant[i, j]
-        color_img[i + 1, j + 1] = colorQuant[i + 1, j + 1]
-      if (cTemp[1, 0] == cTemp[1, 1]):  # texton type 4
-        color_img[i + 1, j] = colorQuant[i + 1, j]
-        color_img[i + 1, j + 1] = colorQuant[i + 1, j + 1]
-      if (cTemp[0, 1] == cTemp[1, 1]):  # texton type 5
-        color_img[i, j + 1] = colorQuant[i, j + 1]
-        color_img[i + 1, j + 1] = colorQuant[i + 1, j + 1]
-      if (cTemp[0, 1] == cTemp[1, 0]):  # texton type 6
-        color_img[i, j + 1] = colorQuant[i, j + 1]
-        color_img[i + 1, j] = colorQuant[i + 1, j]
-
-      # texton search for edge
-      eTemp = edgeQuant[i:i + 2, j:j + 2]
-      if (eTemp[0, 0] == eTemp[0, 1]):  # texton type 1
-        edge_img[i, j] = edgeQuant[i, j]
-        edge_img[i, j + 1] = edgeQuant[i, j + 1]
-      if (eTemp[0, 0] == eTemp[1, 0]):  # texton type 2
-        edge_img[i, j] = edgeQuant[i, j]
-        edge_img[i + 1, j] = edgeQuant[i + 1, j]
-      if (eTemp[0, 0] == eTemp[1, 1]):  # texton type 3
-        edge_img[i, j] = edgeQuant[i, j]
-        edge_img[i + 1, j + 1] = edgeQuant[i + 1, j + 1]
-      if (eTemp[1, 0] == eTemp[1, 1]):  # texton type 4
-        edge_img[i + 1, j] = edgeQuant[i + 1, j]
-        edge_img[i + 1, j + 1] = edgeQuant[i + 1, j + 1]
-      if (eTemp[0, 1] == eTemp[1, 1]):  # texton type 5
-        edge_img[i, j + 1] = edgeQuant[i, j + 1]
-        edge_img[i + 1, j + 1] = edgeQuant[i + 1, j + 1]
-      if (eTemp[0, 1] == eTemp[1, 0]):  # texton type 6
-        edge_img[i, j + 1] = edgeQuant[i, j + 1]
-        edge_img[i + 1, j] = edgeQuant[i + 1, j]
+  
+  # texton search
+  color_img = colorTexton(h, w, colorQuant, color_img)
+  edge_img = edgeTexton(h, w, edgeQuant, edge_img)
 
   # Make color histogram
   cF = np.histogram(color_img.ravel(), cBins, [0, 64])

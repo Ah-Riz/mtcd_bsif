@@ -15,7 +15,6 @@ def main(aug = 1, dir=None, preprocess_mode = 1, pca_l = 0.2, cv=8, c = [1], svm
         cv=4
 
     path_save = os.path.join("C:","\\Users","Rizki","Documents","thesis","hasil_ekstraksi_fitur")
-    # path_batik = os.path.join("C:","\\Users","Rizki","Documents","thesis","Batik_Nitik_960_Images","augmented_image")
     path_batik = os.path.join("C:","\\Users","Rizki","Documents","thesis","Batik_Nitik_960_Images")
     
     if aug == 1:

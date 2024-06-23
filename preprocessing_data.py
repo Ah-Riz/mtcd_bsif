@@ -252,7 +252,3 @@ def preprocessing_setup(dir, mode=1, pca_l=1):
     elif mode == 4:
         makedir(target)
         combination4(path, target)
-    
-if __name__ == '__main__':
-    path = os.path.join("C:","\\Users","Rizki","Documents","thesis","hasil_ekstraksi_fitur","testt")
-    preprocessing_setup(path, 1, 0.2)
